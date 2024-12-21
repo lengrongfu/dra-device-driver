@@ -28,6 +28,7 @@ type AllocatableDevice struct {
 	Gpu         *GpuInfo
 	Mig         *MigDeviceInfo
 	ImexChannel *ImexChannelInfo
+	VGPU        *VGpuInfo
 }
 
 func (d AllocatableDevice) Type() string {
@@ -39,6 +40,9 @@ func (d AllocatableDevice) Type() string {
 	}
 	if d.ImexChannel != nil {
 		return ImexChannelType
+	}
+	if d.VGPU != nil {
+		return VGpuDeviceType
 	}
 	return UnknownDeviceType
 }

@@ -20,6 +20,7 @@ const (
 	GpuDeviceType     = "gpu"
 	MigDeviceType     = "mig"
 	ImexChannelType   = "imex"
+	VGpuDeviceType    = "vgpu"
 	UnknownDeviceType = "unknown"
 )
 

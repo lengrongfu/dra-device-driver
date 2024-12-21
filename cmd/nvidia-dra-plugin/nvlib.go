@@ -132,6 +132,16 @@ func (l deviceLib) enumerateAllPossibleDevices(config *Config) (AllocatableDevic
 		}
 	}
 
+	if deviceClasses.Has(VGpuDeviceType) {
+		vgpus, err := l.enumerateVGpuDevices(config)
+		if err != nil {
+			return nil, fmt.Errorf("error enumerating VGPU devices: %w", err)
+		}
+		for k, v := range vgpus {
+			alldevices[k] = v
+		}
+	}
+
 	return alldevices, nil
 }
 

@@ -30,6 +30,7 @@ const (
 	GpuConfigKind         = "GpuConfig"
 	MigDeviceConfigKind   = "MigDeviceConfig"
 	ImexChannelConfigKind = "ImexChannelConfig"
+	VGpuConfigKind        = "VGpuConfig"
 )
 
 // Interface defines the set of common APIs for all configs
@@ -56,6 +57,7 @@ func init() {
 		&GpuConfig{},
 		&MigDeviceConfig{},
 		&ImexChannelConfig{},
+		&VGpuConfig{},
 	)
 	metav1.AddToGroupVersion(scheme, schemeGroupVersion)
 
