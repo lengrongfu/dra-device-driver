@@ -5,9 +5,18 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type Priority int
+
 const (
-	DefaultCore   = 10
-	DefaultMemory = 1000
+	PriorityLow  Priority = 0
+	PriorityHigh Priority = 999
+)
+
+const (
+	DefaultCore             = 10
+	DefaultMemory           = 1000
+	DefaultMemoryPercentage = 100
+	DefaultPriority         = PriorityLow
 )
 
 // +genclient
@@ -16,10 +25,10 @@ const (
 // VGpuConfig holds the set of parameters for configuring a GPU.
 type VGpuConfig struct {
 	metav1.TypeMeta  `json:",inline"`
-	Core             int64  `json:"core"`
-	Memory           int64  `json:"memory"`
-	MemoryPercentage int64  `json:"memoryPercentage"`
-	Priority         string `json:"priority"`
+	Core             int64    `json:"core"`
+	Memory           int64    `json:"memory"`
+	MemoryPercentage int64    `json:"memoryPercentage"`
+	Priority         Priority `json:"priority"`
 }
 
 type VGpuScalingConfig struct {
@@ -34,36 +43,43 @@ func DefaultVGpuConfig() *VGpuConfig {
 			APIVersion: GroupName + "/" + Version,
 			Kind:       VGpuConfigKind,
 		},
-		SplitCount: DefaultSplitCount,
-		Scaling: VGpuScalingConfig{
-			CoreScaling:   DefaultCoreScaling,
-			MemoryScaling: DefaultMemoryScaling,
-		},
+		Core:             DefaultCore,
+		Memory:           DefaultMemory,
+		MemoryPercentage: DefaultMemoryPercentage,
+		Priority:         DefaultPriority,
 	}
 }
 
 // Normalize updates a VGpuConfig config with implied default values based on other settings.
 func (c *VGpuConfig) Normalize() error {
-	if c.SplitCount == 0 {
-		c.SplitCount = DefaultSplitCount
+	if c.Core <= 0 {
+		c.Core = DefaultCore
 	}
-	if c.Scaling.CoreScaling == 0 {
-		c.Scaling.CoreScaling = DefaultCoreScaling
+	if c.Memory <= 0 {
+		c.Memory = DefaultMemory
 	}
-	if c.Scaling.MemoryScaling == 0 {
-		c.Scaling.MemoryScaling = DefaultMemoryScaling
+	if c.MemoryPercentage < 0 || c.MemoryPercentage > 100 {
+		c.MemoryPercentage = DefaultMemoryPercentage
+	}
+	if c.Priority < PriorityLow || c.Priority > PriorityHigh {
+		c.Priority = DefaultPriority
 	}
 	return nil
 }
 
 // Validate ensures that GpuConfig has a valid set of values.
 func (c *VGpuConfig) Validate() error {
-	return c.Scaling.Validate()
-}
-
-func (sc *VGpuScalingConfig) Validate() error {
-	if sc.CoreScaling <= 0 || sc.MemoryScaling <= 0 {
-		return fmt.Errorf("invalide VGPU Scaling config")
+	if c.Core <= 0 {
+		return fmt.Errorf("core must be greater than 0")
+	}
+	if c.Memory <= 0 {
+		return fmt.Errorf("memory must be greater than 0")
+	}
+	if c.MemoryPercentage < 0 || c.MemoryPercentage > 100 {
+		return fmt.Errorf("memory percentage must be between 0 and 100")
+	}
+	if c.Priority < PriorityLow || c.Priority > PriorityHigh {
+		return fmt.Errorf("priority must be between %d and %d", PriorityLow, PriorityHigh)
 	}
 	return nil
 }
